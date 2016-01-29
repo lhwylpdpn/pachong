@@ -18,6 +18,14 @@ while(1):
 	F_frequency=cf.get("config","F_frequency")
 	F_province=cf.get("config","F_province")
 	F_month=cf.get("config","F_month")
+	if len(F_month)<6 or len(F_month)>8:
+		print("月份配置错误")
+		break
+
+	F_day=F_month
+	F_month=F_month[0:6]
+
+	print(F_day,F_month)
 	F_sleep=cf.get("config","sleep")
 	#runvoice=0
 	pwd=""
@@ -34,7 +42,7 @@ while(1):
 		for user in opts2:
 			print(user.split(' _ ')[1],cf.get("user/pwd",user))
 			if len(re.findall("\s_\s\[success\]",cf.get("user/pwd",user)))==0:
-				process=test.all_start(user.split(' _ ')[1],cf.get("user/pwd",user).split(' _ ')[0],F_province,F_month,F_frequency,network,F_sleep)
+				process=test.all_start(user.split(' _ ')[1],cf.get("user/pwd",user).split(' _ ')[0],F_province,F_month,F_frequency,network,F_sleep,F_day)
 			# if process!=1 and runvoice==0:
 		# 	# 	runvoice=1
 		# 	# 	winsound.PlaySound('SystemExit', winsound.SND_ALIAS)

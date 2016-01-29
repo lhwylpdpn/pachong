@@ -34,13 +34,25 @@ log_new=""
 #占座失败记录6
 #发送占座成功，但是系统返回失败8
 #####################################################
-def ChinaBiddingLogin(usename,pwd,province,month,network,count,sleep):
+def ChinaBiddingLogin(usename,pwd,province,month,network,count,sleep,day):
 	global log_txt
 	global log_new
 	url_choose="toefl.etest."+network+".cn"
 	webCookie = http.cookiejar.LWPCookieJar()  
 	openner = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(webCookie),urllib.request.HTTPHandler)
-	send_header = {'Host':url_choose,'User-Agent':'Mozilla/5.0 (Windows NT 6.2; rv:16.0) Gecko/20100101 Firefox/16.0','Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8','Connection':'keep-alive'}
+	user_agent=[]
+	user_agent.append("Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50")
+	user_agent.append("Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50")
+	user_agent.append("Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0")
+	user_agent.append("Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0)")
+	user_agent.append("Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0")
+	user_agent.append("Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1")
+	user_agent.append("Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; en) Presto/2.8.131 Version/11.11")
+	user_agent.append("Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Maxthon 2.0)")
+	user_agent.append("Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)")
+	user_agent.append("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11")
+	random.shuffle(user_agent)
+	send_header = {'Host':url_choose,'User-Agent':user_agent[1],'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8','Connection':'keep-alive'}
 	#urlopener.addheaders.append(('Referer', 'http://www.chinabidding.com.cn/zbw/login/login.jsp'))
 	#urlopener.addheaders.append(('Accept', 'text/html, application/xhtml+xml, */*'))
 	#urlopener.addheaders.append(('Accept-Encoding', 'gzip, deflate'))
@@ -99,6 +111,10 @@ def ChinaBiddingLogin(usename,pwd,province,month,network,count,sleep):
 	while i<int(count):
 		try:
 			response = urllib.request.urlopen(req)
+			the_page=response.read()
+			save_html(the_page,33)
+			p=re.findall("\d{5}.\d{10}.VerifyCode2.jpg",the_page.decode("GBK"))
+			sb=str(p[0])
 		except Exception as e:
 			log_txt=log_txt+"3"
 			log_new=log_new+"["+str(time.strftime("%Y-%m-%d %H:%M:%S"))+"]"+"步骤三：查看省份页面显示失败"+"\n"
@@ -110,14 +126,15 @@ def ChinaBiddingLogin(usename,pwd,province,month,network,count,sleep):
 			break
 	else:
 		return 0
-	the_page=response.read()	
-	p=re.findall("\d{5}.\d{10}.VerifyCode2.jpg",the_page.decode("GBK"))
+
 #第二次获取验证码的请求
 	i=0
 	while i<int(count):
 		try:
+			
 			req1 = urllib.request.Request("http://"+url_choose+"/cn/"+p[0],headers=send_header)
 			response1=urllib.request.urlopen(req1)
+			
 		except Exception as e:
 			log_txt=log_txt+"4"
 			log_new=log_new+"["+str(time.strftime("%Y-%m-%d %H:%M:%S"))+"]"+"步骤四：第二次获取验证码失败"+"\n"
@@ -151,9 +168,10 @@ def ChinaBiddingLogin(usename,pwd,province,month,network,count,sleep):
 			log_new=log_new+"["+str(time.strftime("%Y-%m-%d %H:%M:%S"))+"]"+"步骤五：查询考位成功"+"\n"
 			print("["+str(time.strftime("%Y-%m-%d %H:%M:%S"))+"]"+"步骤五：查询考位成功")
 			the_page=response.read()
-			save_html(the_page,"teshu")
+			save_html(the_page,"buzhou5"+str(random.random()))
+			#print(the_page)
 			time.sleep(int(sleep))
-			p=re.findall("\w+\=\"\w+\=\w+\"\>\s+\<\w+\s\w+\=\"\w+\"\s\w+\=\"\w+\"\s\w+\=\"[\u4e00-\u9fa5]+\"\s\w+\=\"\w+.__act.value=\'\w+.\w+.\w+.\w+.\w+.\w+.\w+.\w+.\w+\';\w+\s\w+\(\);\"\>",the_page.decode("GBK"))
+			p=re.findall("\w+\=\""+day+"\w+\=\w+\"\>\s+\<\w+\s\w+\=\"\w+\"\s\w+\=\"\w+\"\s\w+\=\"[\u4e00-\u9fa5]+\"\s\w+\=\"\w+.__act.value=\'\w+.\w+.\w+.\w+.\w+.\w+.\w+.\w+.\w+\';\w+\s\w+\(\);\"\>",the_page.decode("GBK"))
 			q=re.findall("lick\=[\u4e00-\u9fa5_a-zA-Z0-9()\.\;\"\s\=\']+disabled",the_page.decode("GBK"))
 			print(len(q),len(p))
 			if len(p)>0:
@@ -165,7 +183,8 @@ def ChinaBiddingLogin(usename,pwd,province,month,network,count,sleep):
 				return 0
 			else:
 				form_name=""
-				print("查询位置页面的时候出错了")
+				time.sleep(6)
+				print("步骤五:查询等待图片时间超时,需要重新登录")
 				return 0
 	else:
 		return 0
@@ -190,7 +209,7 @@ def ChinaBiddingLogin(usename,pwd,province,month,network,count,sleep):
 			log_new=log_new+"["+str(time.strftime("%Y-%m-%d %H:%M:%S"))+"]"+"步骤六：提交占考位请求成功"+"\n"
 			print("["+str(time.strftime("%Y-%m-%d %H:%M:%S"))+"]"+"步骤六：提交站考位请求成功")
 			the_page=response.read()
-			save_html(the_page,log_txt)
+			save_html(the_page,"buzhou6"+str(random.random()))
 			if len(re.findall("请继续操作，直至完成付款确认。",the_page.decode("GBK")))>0 and len(re.findall(form_name[17:26],the_page.decode("GBK")))>0:
 				log_txt=log_txt+"T"
 				p=re.findall("\<\w+\s\w+\=\"3\"\s\w+\=\"#EEEEEE\"\>[\u4e00-\u9fa5_a-zA-Z0-9（）()\s]+",the_page.decode("GBK"))
@@ -211,7 +230,7 @@ def ChinaBiddingLogin(usename,pwd,province,month,network,count,sleep):
 				log_new=log_new+"["+str(time.strftime("%Y-%m-%d %H:%M:%S"))+"]"+"步骤七：经验证,占考位失败,服务器忙"+"\n"
 				print("["+str(time.strftime("%Y-%m-%d %H:%M:%S"))+"]"+"步骤七：经验证,占考位失败,服务器忙")
 				log_txt=log_txt+"8"
-				i=i+1;time.sleep(int(sleep))
+				i=i+1;time.sleep(2)
 	else:
 		return 0	
 
@@ -270,11 +289,11 @@ def register_all(page):
 
 
 
-def all_start(usename,pwd,province,month,count,network,sleep):
+def all_start(usename,pwd,province,month,count,network,sleep,day):
 	global log_txt
 	global log_new
 	i=1
-	process_all=ChinaBiddingLogin(usename,pwd,province,month,network,count,sleep)
+	process_all=ChinaBiddingLogin(usename,pwd,province,month,network,count,sleep,day)
 	#while process_all==1 and i<=int(count):
 	#	process_all=ChinaBiddingLogin(usename,pwd,province,month,network,count)
 	#	i=i+1;time.sleep(int(sleep))
